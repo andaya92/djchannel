@@ -56,10 +56,15 @@ Room
 
    //Create Socket to Django Consumer
    
-   var chatSocket = new WebSocket(
-      'ws://' + window.location.host +
-      '/ws/mychannel/room/' + roomName + "/"
-   	);
+   let chatSocket = ""; 
+   if(window.location.protocol == "http:"){
+     chatSocket = new WebSocket('ws://' + window.location.host + '/ws/mychannel/room/' + roomName + "/");
+      );
+   }else{
+      chatSocket = new WebSocket('wss://' + window.location.host + '/ws/mychannel/room/' + roomName + "/");
+   }
+
+   
 
    var videoElement = document.querySelector('#video');
    //Get Web Cam From Triggering Restart onclick()
