@@ -1,0 +1,38 @@
+{% extends 'channel_proj/base.html' %}
+<!DOCTYPE html>
+
+{% block title %} 
+Channel
+{% endblock title %}
+
+{% block body %}
+
+<p> Hello, World! </p>
+
+
+
+Enter name of room to enter.<br/>
+
+<input id="room-name-input" type="text" size="100"/><br/>
+<input id="room-name-submit" type="button" value="Enter"/>
+
+<script>
+    document.querySelector('#room-name-input').focus();
+    document.querySelector('#room-name-input').onkeyup = function(e) {
+        if (e.keyCode === 13) {  // enter, return
+            document.querySelector('#room-name-submit').click();
+        }
+    };
+
+    document.querySelector('#room-name-submit').onclick = function(e) {
+        var roomName = document.querySelector('#room-name-input').value;
+        if(roomName){
+            window.location.pathname = 'mychannel/room/' + roomName;    
+        }
+        
+    };
+</script>
+
+
+
+{% endblock body %}

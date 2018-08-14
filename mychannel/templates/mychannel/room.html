@@ -1,0 +1,147 @@
+{% extends 'channel_proj/base.html' %}
+{% load static %}
+<!DOCTYPE html>
+
+{% block title %} 
+Room
+{% endblock title %}
+
+{% block body %}
+<div class="row">
+   <div class="col-12">
+      <h2> Welcome to {{ room_name_json }}! </h2>
+   </div>
+   <div class="col-12">
+      <input id="username-session" type="text" size="30" placeholder="Enter Username"/><br/>
+      <textarea readonly id="chat-log" cols="100" rows="20"></textarea><br/>
+      <input id="chat-message-input" type="text" size="100" placeholder="Enter chat message..."/><br/>
+   </div>
+</div>
+<div class="row">
+   <div class="col-12">
+      <video id="video"> </video>
+   </div>
+   <div class="col-12">
+      <input id="video-rec" type="button" value="Record"/>
+      <input id="video-send" type="button" value="Send"/>
+      <input id="video-restart" type="button" value="Restart"/>
+   </div>
+</div>
+
+<div class="row justify-content-center">
+   <div class="col-6 col-offset-3">
+      <div id="videos"></div>
+   </div>
+</div>
+
+
+
+
+
+<script type="text/javascript" src="{% static "mychannel/js/webcam.js" %}"></script>
+<script type="text/javascript">
+   
+   
+   //Get users webcam.
+   // Send -> send video after recording
+   // Restart -> restart video after recording
+   // Record -> record video, press send to stop
+   var roomName = {{ room_name_json }};
+   var usern = "None";
+   var theStream;
+   var theRecorder;
+   var recordedChunks = [];
+
+   var constraints = { audio: true, video: { width: 640, height: 360 } }; 
+
+   //Create Socket to Django Consumer
+   
+   var chatSocket = new WebSocket(
+      'ws://' + window.location.host +
+      '/ws/mychannel/room/' + roomName + "/"
+   	);
+
+   var videoElement = document.querySelector('#video');
+   //Get Web Cam From Triggering Restart onclick()
+   
+
+   //
+   // Set  Record, Send, Restart buttons 
+   document.querySelector('#video-rec').focus();
+   // Send video to Consumer
+   document.querySelector('#video-rec').onclick = function(e){
+      console.log(theStream);
+      recordStream(theStream);
+      //display timer possibly here. Apeend something to a js element
+   }
+   document.querySelector('#video-send').onclick = function(e){
+      console.log(theStream);
+      sendChunks(theStream, recordedChunks, theRecorder, chatSocket);  
+   };
+   document.querySelector('#video-restart').onclick = function (){
+         navigator.mediaDevices.getUserMedia(constraints)
+      .then(function(stream){
+         theStream = gotMedia(stream, videoElement);
+      })
+      .catch(function(err) { console.log(err.name + ": " + err.message); });
+   }
+   document.querySelector('#video-restart').click();
+   //
+   //    Attempt username, hard with channels.
+   //    Get message from user
+   document.querySelector('#username-session').onkeyup = function(e){
+      if(e.keyCode === 13){
+         var userInputFiled = document.querySelector('#username-session');
+         usern = userInputFiled.value;
+         userInputFiled.remove();
+         //document.querySelector('#username-session').value = '';
+      }
+   }
+   document.querySelector('#chat-message-input').onkeyup = function(e){
+      if(e.keyCode === 13){
+         var msg = document.querySelector('#chat-message-input').value;
+         chatSocket.send(msg);
+      }
+   }
+
+
+   //Received from Django Consumer
+   chatSocket.onmessage = function(e){
+      if(typeof e.data == typeof ""){
+         document.querySelector('#chat-log').value += usern + ": " +e.data + "\n";
+         document.querySelector('#chat-message-input').value = "";
+      }else{
+      
+      //var data = JSON.parse(e.data);
+      //var message = data['text']
+      //
+      // Create Url from video data as src for a created video element
+      var blobUrl = URL.createObjectURL(e.data);
+      var vidList = document.querySelector("#videos")
+      var vid = document.createElement("video");
+      vid.id = blobUrl.substring(11); //return end of url 11->end
+      vid.loop = true;
+      vid.src = blobUrl;
+      var deleteBtn = document.createElement("BUTTON");
+      deleteBtn.appendChild(document.createTextNode("Delete"));
+      // Set a button to remove the video
+      deleteBtn.onclick = function(){
+         vid.remove();
+         this.remove();
+      }
+
+      //Nothing elegant in terms of UI
+      vidList.appendChild(vid);
+      vidList.appendChild(deleteBtn);
+
+      //console.log(e.data, window.btoa(e.data), blobUrl);
+      //
+      // Once video is eady, play it
+      vid.onloadedmetadata = function(e) {
+       vid.play();
+      };
+      //document.querySelector('#chat-log').value += (message+'\n');
+      }
+   };
+</script>
+{% endblock body %}

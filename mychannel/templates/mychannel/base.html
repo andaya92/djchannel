@@ -1,0 +1,44 @@
+
+<html>
+<head>
+	<title> 
+		{% block title %}
+			Default Title 
+		{% endblock title %}
+	</title>
+
+	<style>
+		ul {
+		    list-style-type: none;
+		    margin: 0;
+		    padding: 0;
+		}
+
+		li {
+		    display: inline;
+		}
+		.center {
+		    margin: auto;
+		    width: 50%;
+		    border: 2px solid greenr;
+		    padding: 10px;
+		}
+	</style>
+</head>
+<body>
+
+<ul class="center">
+	<div class="center">
+		<li><a href="{% url 'index' %}">HOME</a></li>
+		<li><a href="{% url 'mychannel:index' %}">CHAT ROOM</a></li>
+		<li><a href="{% url 'mychannel:server_cam' %}">SERVER CAM</a></li>
+	</div>
+</ul
+
+<br>
+<div class="center">
+{% block body %}
+{% endblock body %}
+</div>
+</body>
+</html>

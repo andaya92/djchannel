@@ -1,0 +1,124 @@
+{% extends 'channel_proj/base.html' %}
+{% load static %}
+<!DOCTYPE html>
+
+{% block title %} 
+Server Cam
+{% endblock title %}
+
+{% block body %}
+<div class="row">
+	<div class="col-12">
+		<p> Welcome to Server cam. Opencv for Python! </p>
+	</div>
+	
+	<div class="col-6">
+		<button id="run">Take Snap</button> <br>
+		<button id="video-start" hide>Hide Me</button> <br>
+	</div>
+	<div class="col-6">
+		<!-- Radio Buttons -->
+		<input type="radio" name="filterType" value="lap"> Lapalacian </input><br>
+		<input type="radio" name="filterType" value="sobx"> SobelX</input><br>
+		<input type="radio" name="filterType" value="soby"> SobelY</input><br>
+		<input type="radio" name="filterType" value="canny"> Canny</input><br>
+		<input type="radio" name="filterType" value="template"> Template<br>
+		<input type="radio" name="filterType" value="face"> Face Detect<br><br>
+	</div>
+</div>
+
+<div class="row">
+	<!-- Image from Camera -->
+	<img id="image" src="" width="640" height="360"/> 
+	<!-- Video Element == Users camera -->
+	<video></video>
+</div>
+
+<script type="text/javascript" src="{% static "mychannel/js/webcam.js" %}"></script>
+<script type="text/javascript">
+
+	var theStream;
+	var videoSocket = new WebSocket('ws://' + window.location.host + '/ws/mychannel/servercam/');
+	var videoElement = document.querySelector('video'); 
+	var canvas = document.createElement("canvas");
+	var scale = 1.0;
+	var startCameraButton =  document.querySelector('#video-start');
+	startCameraButton.hidden = true;
+
+
+	videoSocket.onopen = function(){
+		//Do something once connection is open
+	}
+	
+
+	//
+	//
+	//			Get Image from Video					////////////
+	//
+	//
+
+	document.querySelector('#run').onclick = function (){
+		getImage(canvas, scale);
+	}
+	
+
+	//
+	//
+	//			Get Frame from user Camera						////////////
+	//				via canvas => dataUrl						////////////
+	//
+	//
+	var getImage = function(mcanvas, mscale) {
+		console.log('a');
+		var radioButtons = document.querySelectorAll('input[name=filterType]:checked');
+		mcanvas.width = videoElement.videoWidth * mscale;
+		mcanvas.height = videoElement.videoHeight * mscale;
+		mcanvas.getContext('2d')
+			.drawImage(videoElement, 0, 0, mcanvas.width, mcanvas.height);
+
+		var userChoice = "reg";
+		if(radioButtons.length > 0){
+			userChoice = radioButtons[0]["value"];
+		}
+		
+		var message = {
+			url: mcanvas.toDataURL(),
+			choice : userChoice
+		};
+
+		videoSocket.send(text_data = JSON.stringify(message));
+		// document.querySelector('#images').appendChild(img);
+	};
+
+
+
+	//
+	//
+	//			Handle Message from Django Consumer						////////////
+	//
+	//
+	videoSocket.onmessage = function(e){
+		//console.log(e.data);
+		var image = document.querySelector('#image');
+		image.src = e.data;
+	}
+
+	//
+	//
+	//			WEBCAM						////////////
+	//
+	//
+	var constraints = { audio: false, video: { width: 640, height: 360 } }; 
+	startCameraButton.onclick = function (){
+      p1 =  navigator.mediaDevices.getUserMedia(constraints)
+      .then(function(stream){
+         theStream = gotMedia(stream, videoElement);
+      })
+      .catch(function(err) { console.log(err.name + ": " + err.message); });
+   	}
+   document.querySelector('#video-start').click();
+</script>
+
+
+
+{% endblock body %}
