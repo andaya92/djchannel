@@ -59,7 +59,6 @@ Room
    let chatSocket = ""; 
    if(window.location.protocol == "http:"){
      chatSocket = new WebSocket('ws://' + window.location.host + '/ws/mychannel/room/' + roomName + "/");
-      );
    }else{
       chatSocket = new WebSocket('wss://' + window.location.host + '/ws/mychannel/room/' + roomName + "/");
    }
