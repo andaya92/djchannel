@@ -38,7 +38,14 @@ Server Cam
 <script type="text/javascript">
 
 	var theStream;
-	var videoSocket = new WebSocket('ws://' + window.location.host + '/ws/mychannel/servercam/');
+
+	let videoSocket = ""; 
+	if(window.location.protocol == "http:"){
+		videoSocket = new WebSocket('ws://' + window.location.host + '/ws/mychannel/servercam/');
+	}else{
+		videoSocket = new WebSocket('wss://' + window.location.host + '/ws/mychannel/servercam/');
+	}
+	
 	var videoElement = document.querySelector('video'); 
 	var canvas = document.createElement("canvas");
 	var scale = 1.0;
